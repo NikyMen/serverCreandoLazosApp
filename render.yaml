@@ -3,7 +3,7 @@ services:
     name: creando-lazos-api
     env: node
     plan: free
-    buildCommand: npm install && npm run prisma:generate:ci && npm run build && npm run prisma:push
+    buildCommand: npm ci --include=dev && npm run prisma:generate:ci && npm run build && npm run prisma:push
     startCommand: npm run start
     envVars:
       - key: JWT_SECRET
@@ -14,3 +14,5 @@ services:
         sync: false
       - key: PORT
         value: 4000
+      - key: NPM_CONFIG_PRODUCTION
+        value: false
