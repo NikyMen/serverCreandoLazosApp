@@ -131,7 +131,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Dev\\CreandoLazos\\server\\src\\generated\\prisma",
+      "value": "C:\\Dev\\CreandoLazosServer\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -145,7 +145,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Dev\\CreandoLazos\\server\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Dev\\CreandoLazosServer\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -158,7 +158,7 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {

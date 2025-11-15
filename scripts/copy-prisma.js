@@ -1,7 +1,9 @@
-// Copies the generated Prisma client from src/generated/prisma to dist/generated/prisma
-// so that "npm run start" (which runs from dist) has access to the client.
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const src = path.join(__dirname, '..', 'src', 'generated', 'prisma');
 const dest = path.join(__dirname, '..', 'dist', 'generated', 'prisma');

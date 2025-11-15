@@ -10,7 +10,10 @@
     "postbuild": "node scripts/copy-prisma.js",
     "prisma:migrate": "dotenv -e ../.env prisma migrate dev --name init",
     "prisma:generate": "dotenv -e ../.env prisma generate",
-    "prisma:seed": "dotenv -e ../.env tsx prisma/seed.ts"
+    "prisma:seed": "dotenv -e ../.env tsx prisma/seed.ts",
+    "prisma:generate:ci": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:seed:ci": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
