@@ -61,7 +61,7 @@ export default function studiesRouter(prisma) {
         if (!study)
             return res.status(404).json({ error: 'Not found' });
         try {
-            await cloudinary.uploader.destroy(study.cloudinaryId, { resource_type: 'raw' });
+            await cloudinary.uploader.destroy(study.id, { resource_type: 'raw' });
         }
         catch { }
         await prisma.study.delete({ where: { id } });
