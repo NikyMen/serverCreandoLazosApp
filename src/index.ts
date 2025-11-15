@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import { PrismaClient } from './generated/prisma';
-import authRouter from './routes/auth';
-import studiesRouter from './routes/studies';
+import { PrismaClient } from './generated/prisma/index.js';
+import authRouter from './routes/auth.js';
+import studiesRouter from './routes/studies.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import serveStatic from 'serve-static';
