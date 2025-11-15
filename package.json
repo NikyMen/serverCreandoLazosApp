@@ -11,9 +11,9 @@
     "prisma:migrate": "dotenv -e ../.env prisma migrate dev --name init",
     "prisma:generate": "dotenv -e ../.env prisma generate",
     "prisma:seed": "dotenv -e ../.env tsx prisma/seed.ts",
-    "prisma:generate:ci": "prisma generate",
-    "prisma:deploy": "prisma migrate deploy",
-    "prisma:push": "prisma db push --accept-data-loss",
+    "prisma:generate:ci": "npx prisma generate",
+    "prisma:deploy": "npx prisma migrate deploy",
+    "prisma:push": "npx prisma db push --accept-data-loss",
     "prisma:seed:ci": "tsx prisma/seed.ts"
   },
   "dependencies": {
