@@ -1,13 +1,12 @@
 import { Router, type Request, type Response } from 'express';
 import { PrismaClient } from '../generated/prisma';
 import { z } from 'zod';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { v2 as cloudinary } from 'cloudinary';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadDir = path.join(__dirname, '../../uploads/studies');
+cloudinary.config({
+  url: process.env.CLOUDINARY_URL,
+  secure: true,
+});
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -42,16 +41,18 @@ export default function studiesRouter(prisma: PrismaClient) {
     }
     const { name, mimeType, forEmail, dataBase64 } = parsed.data;
     try {
-      // Ensure dir
-      fs.mkdirSync(uploadDir, { recursive: true });
       const id = cryptoRandomId();
-      const filename = `${id}.pdf`;
-      const absPath = path.join(uploadDir, filename);
-      const buf = Buffer.from(dataBase64, 'base64');
-      fs.writeFileSync(absPath, buf);
-      const fileUrl = `/uploads/studies/${filename}`;
+      const dataUri = `data:${mimeType};base64,${dataBase64}`;
+      const uploaded = await cloudinary.uploader.upload(dataUri, {
+        folder: 'studies',
+        resource_type: 'raw',
+        public_id: id,
+        overwrite: true,
+      });
+      const fileUrl = uploaded.secure_url;
+      const cloudinaryId = uploaded.public_id;
       const created = await prisma.study.create({
-        data: { id, name, mimeType, forEmail, fileUrl },
+        data: { id, name, mimeType, forEmail, fileUrl, cloudinaryId },
       });
       res.status(201).json(created);
     } catch (err) {
@@ -65,10 +66,7 @@ export default function studiesRouter(prisma: PrismaClient) {
     const study = await prisma.study.findUnique({ where: { id } });
     if (!study) return res.status(404).json({ error: 'Not found' });
     try {
-      // delete file
-      const filename = path.basename(study.fileUrl);
-      const absPath = path.join(uploadDir, filename);
-      if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+      await cloudinary.uploader.destroy(study.cloudinaryId, { resource_type: 'raw' });
     } catch {}
     await prisma.study.delete({ where: { id } });
     res.status(204).end();

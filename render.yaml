@@ -3,19 +3,14 @@ services:
     name: creando-lazos-api
     env: node
     plan: free
-    buildCommand: npm ci && npm run prisma:generate:ci && npm run build && npm run prisma:deploy
+    buildCommand: npm ci && npm run prisma:generate:ci && npm run build && npm run prisma:push
     startCommand: npm run start
     envVars:
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL
-        value: file:/opt/render/project/src/data/dev.db
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
       - key: PORT
         value: 4000
-    disks:
-      - name: data
-        mountPath: /opt/render/project/src/data
-        sizeGB: 1
-      - name: uploads
-        mountPath: /opt/render/project/src/uploads
-        sizeGB: 1
