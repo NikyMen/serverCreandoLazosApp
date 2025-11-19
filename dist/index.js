@@ -1,28 +1,6 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import { PrismaClient } from './generated/prisma/index.js';
-import authRouter from './routes/auth.js';
-import studiesRouter from './routes/studies.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import serveStatic from 'serve-static';
-const app = express();
-const prisma = new PrismaClient();
-// Basic config
-app.use(cors({ origin: '*' }));
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ limit: '20mb', extended: true }));
-// Static serving for uploaded files
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use('/uploads', serveStatic(path.join(__dirname, '../uploads')));
-app.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
-});
-// Routes
-app.use('/auth', authRouter(prisma));
-app.use('/studies', studiesRouter(prisma));
+import { createApp } from './app.js';
+const app = createApp();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 app.listen(PORT, () => {
     console.log(`API escuchando en http://localhost:${PORT}`);

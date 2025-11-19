@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { PrismaClient } from '../generated/prisma/index.js';
+import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
 
