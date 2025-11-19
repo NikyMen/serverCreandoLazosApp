@@ -1,7 +1,7 @@
 {
   "version": 2,
   "installCommand": "npm install",
-  "buildCommand": "npx prisma generate && npm run build",
+  "buildCommand": "node ./node_modules/prisma/build/index.js generate && npm run build",
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index" }
   ]
