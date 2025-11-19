@@ -11,7 +11,7 @@ interface VercelResponse {
   json(obj: any): VercelResponse;
   send(body: any): VercelResponse;
 }
-import { createApp } from '../src/app';
+import { createApp } from '../src/app.js';
 
 const app = createApp();
 

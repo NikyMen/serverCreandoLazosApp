@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import { createApp } from './app';
+import { createApp } from './app.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import serveStatic from 'serve-static';
