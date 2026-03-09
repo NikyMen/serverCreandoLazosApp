@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 import serveStatic from 'serve-static';
 import authRouter from './routes/auth.js';
 import studiesRouter from './routes/studies.js';
+import usersRouter from './routes/users.js';
+import profilesRouter from './routes/profiles.js';
 
 export function createApp() {
   const app = express();
@@ -25,6 +27,8 @@ export function createApp() {
 
   app.use('/auth', authRouter(prisma));
   app.use('/studies', studiesRouter(prisma));
+  app.use('/users', usersRouter(prisma));
+  app.use('/profiles', profilesRouter(prisma));
 
   return app;
 }
