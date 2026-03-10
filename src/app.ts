@@ -10,6 +10,7 @@ import usersRouter from './routes/users.js';
 import profilesRouter from './routes/profiles.js';
 import adminRouter from './routes/admin.js';
 import galleryRouter from './routes/gallery.js';
+import eventsRouter from './routes/events.js';
 
 export function createApp() {
   const app = express();
@@ -27,12 +28,17 @@ export function createApp() {
     res.json({ status: 'ok' });
   });
 
-  app.use('/auth', authRouter(prisma));
-  app.use('/studies', studiesRouter(prisma));
-  app.use('/users', usersRouter(prisma));
-  app.use('/profiles', profilesRouter(prisma));
-  app.use('/admin', adminRouter(prisma));
-  app.use('/gallery', galleryRouter(prisma));
+  // Prefijo /api para todas las rutas
+  const apiRouter = express.Router();
+  app.use('/api', apiRouter);
+
+  apiRouter.use('/auth', authRouter(prisma));
+  apiRouter.use('/studies', studiesRouter(prisma));
+  apiRouter.use('/users', usersRouter(prisma));
+  apiRouter.use('/profiles', profilesRouter(prisma));
+  apiRouter.use('/admin', adminRouter(prisma));
+  apiRouter.use('/gallery', galleryRouter(prisma));
+  apiRouter.use('/events', eventsRouter(prisma));
 
   return app;
 }

@@ -23,6 +23,8 @@ model Study {
   fileUrl   String
   cloudinaryId String
   forEmail  String?
+  type      String?
+  date      String?
   createdAt DateTime @default(now())
 }
 
@@ -34,4 +36,29 @@ model GalleryItem {
   type      String
   date      String
   createdAt DateTime @default(now())
+}
+
+model Profile {
+  id              String   @id @default(uuid())
+  correo          String   @unique
+  nombreApellido  String
+  cuilDni         String
+  obraSocial      String
+  diagnostico     String
+  servicio        String
+  cudNumero       String
+  cudVencimiento  String
+  cudAcompanante  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Event {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  date      String
+  type      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

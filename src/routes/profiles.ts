@@ -1,36 +1,61 @@
 import { Router, type Request, type Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+
+const profileSchema = z.object({
+  correo: z.string().email(),
+  nombreApellido: z.string().min(1),
+  cuilDni: z.string().min(1),
+  obraSocial: z.string().min(1),
+  diagnostico: z.string().min(1),
+  servicio: z.string().min(1),
+  cudNumero: z.string().min(1),
+  cudVencimiento: z.string().min(1),
+  cudAcompanante: z.string().min(1),
+});
 
 export default function profilesRouter(prisma: PrismaClient) {
   const router = Router();
 
-  // GET /profiles
-  router.get('/', async (_req: Request, res: Response) => {
+  // GET /profiles?email=...
+  router.get('/', async (req: Request, res: Response) => {
+    const { email } = req.query;
     try {
-      const users = await prisma.user.findMany({
-        select: {
-          email: true,
-        },
+      if (email && typeof email === 'string') {
+        const profile = await prisma.profile.findUnique({
+          where: { correo: email }
+        });
+        if (!profile) return res.status(404).json({ error: 'Perfil no encontrado' });
+        return res.json(profile);
+      }
+
+      const profiles = await prisma.profile.findMany({
+        orderBy: { nombreApellido: 'asc' }
       });
-      res.json(users);
+      res.json(profiles);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Error al obtener perfiles' });
     }
   });
 
-  // GET /profiles/list
-  router.get('/list', async (_req: Request, res: Response) => {
+  // POST /profiles
+  router.post('/', async (req: Request, res: Response) => {
+    const parsed = profileSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
+
     try {
-      const users = await prisma.user.findMany({
-        select: {
-          email: true,
-        },
+      const profile = await prisma.profile.upsert({
+        where: { correo: parsed.data.correo },
+        update: parsed.data,
+        create: parsed.data,
       });
-      res.json(users);
+      res.json(profile);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Error al obtener lista de perfiles' });
+      res.status(500).json({ error: 'Error al guardar el perfil' });
     }
   });
 

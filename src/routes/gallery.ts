@@ -16,13 +16,10 @@ export default function galleryRouter(prisma: PrismaClient) {
   // GET /gallery?email=...
   router.get('/', async (req: Request, res: Response) => {
     const { email } = req.query;
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({ error: 'Email is required as a query parameter' });
-    }
-
+    
     try {
       const items = await prisma.galleryItem.findMany({
-        where: { email },
+        where: email && typeof email === 'string' ? { email } : {},
         orderBy: { createdAt: 'desc' }
       });
       res.json(items);

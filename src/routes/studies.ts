@@ -10,18 +10,19 @@ cloudinary.config({
 
 const createSchema = z.object({
   name: z.string().min(1),
-  mimeType: z.literal('application/pdf'),
-  forEmail: z.string().email().optional(),
-  dataBase64: z.string().min(10),
+  email: z.string().email(),
+  base64: z.string().min(10),
+  type: z.string().optional(),
+  date: z.string().optional(),
 });
 
 export default function studiesRouter(prisma: PrismaClient) {
   const router = Router();
 
   router.get('/', async (req: Request, res: Response) => {
-    const forEmail = typeof req.query.forEmail === 'string' ? req.query.forEmail : undefined;
+    const email = typeof req.query.email === 'string' ? req.query.email : undefined;
     const studies = await prisma.study.findMany({
-      ...(forEmail ? { where: { forEmail } } : {}),
+      ...(email ? { where: { forEmail: email } } : {}),
       orderBy: { createdAt: 'desc' },
     });
     res.json(studies);
@@ -39,10 +40,12 @@ export default function studiesRouter(prisma: PrismaClient) {
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
     }
-    const { name, mimeType, forEmail, dataBase64 } = parsed.data;
+    const { name, email, base64, type, date } = parsed.data;
     try {
       const id = cryptoRandomId();
-      const dataUri = `data:${mimeType};base64,${dataBase64}`;
+      // Assume PDF if not specified, or extract from base64 if possible
+      const mimeType = 'application/pdf'; 
+      const dataUri = `data:${mimeType};base64,${base64}`;
       const uploaded = await cloudinary.uploader.upload(dataUri, {
         folder: 'studies',
         resource_type: 'raw',
@@ -52,12 +55,21 @@ export default function studiesRouter(prisma: PrismaClient) {
       const fileUrl = uploaded.secure_url;
       const cloudinaryId = uploaded.public_id;
       const created = await prisma.study.create({
-        data: { id, name, mimeType, forEmail, fileUrl, cloudinaryId },
+        data: { 
+          id, 
+          name, 
+          mimeType, 
+          forEmail: email, 
+          fileUrl, 
+          cloudinaryId,
+          type,
+          date
+        },
       });
       res.status(201).json(created);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'No se pudo guardar el PDF' });
+      res.status(500).json({ error: 'No se pudo guardar el archivo' });
     }
   });
 
