@@ -78,8 +78,11 @@ export default function studiesRouter(prisma: PrismaClient) {
     const study = await prisma.study.findUnique({ where: { id } });
     if (!study) return res.status(404).json({ error: 'Not found' });
     try {
-      await cloudinary.uploader.destroy(study.id, { resource_type: 'raw' });
-    } catch {}
+      // Usar cloudinaryId en lugar de id para borrar de Cloudinary
+      await cloudinary.uploader.destroy(study.cloudinaryId, { resource_type: 'raw' });
+    } catch (err) {
+      console.error('Error deleting from Cloudinary:', err);
+    }
     await prisma.study.delete({ where: { id } });
     res.status(204).end();
   });
