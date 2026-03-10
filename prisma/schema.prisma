@@ -25,3 +25,13 @@ model Study {
   forEmail  String?
   createdAt DateTime @default(now())
 }
+
+model GalleryItem {
+  id        String   @id @default(uuid())
+  email     String
+  uri       String
+  title     String
+  type      String
+  date      String
+  createdAt DateTime @default(now())
+}
