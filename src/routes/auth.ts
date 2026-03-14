@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 const registerSchema = z.object({
+  name: z.string().min(1),
+  dni: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(6),
   role: z.enum(['ADMIN', 'PATIENT'])
@@ -25,18 +27,22 @@ export default function authRouter(prisma: PrismaClient) {
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.flatten() });
     }
-    const { email, password, role } = parsed.data;
+    const { name, dni, email, password, role } = parsed.data;
     try {
-      const exists = await prisma.user.findUnique({ where: { email } });
-      if (exists) return res.status(409).json({ error: 'Email ya registrado' });
+      const [existsByEmail, existsByDni] = await Promise.all([
+        prisma.user.findUnique({ where: { email } }),
+        prisma.user.findUnique({ where: { dni } }),
+      ]);
+      if (existsByEmail) return res.status(409).json({ error: 'Email ya registrado' });
+      if (existsByDni) return res.status(409).json({ error: 'DNI ya registrado' });
       const passwordHash = await bcrypt.hash(password, 10);
       const user = await prisma.user.create({
-        data: { email, passwordHash, role }
+        data: { name, dni, email, passwordHash, role }
       });
       const token = signToken(user.id, user.role as Role);
       return res.status(201).json({
         token,
-        user: { id: user.id, email: user.email, role: user.role }
+        user: { id: user.id, name: user.name, dni: user.dni, email: user.email, role: user.role }
       });
     } catch (err) {
       console.error(err);
@@ -56,7 +62,10 @@ export default function authRouter(prisma: PrismaClient) {
       const ok = await bcrypt.compare(password, user.passwordHash);
       if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });
       const token = signToken(user.id, user.role as Role);
-      return res.json({ token, user: { id: user.id, email: user.email, role: user.role } });
+      return res.json({
+        token,
+        user: { id: user.id, name: user.name, dni: user.dni, email: user.email, role: user.role }
+      });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: 'Error en inicio de sesión' });

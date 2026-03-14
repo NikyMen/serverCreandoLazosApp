@@ -17,9 +17,9 @@ const profileSchema = z.object({
 export default function profilesRouter(prisma: PrismaClient) {
   const router = Router();
 
-  // GET /profiles?email=...
+  // GET /profiles?email=...&query=...
   router.get('/', async (req: Request, res: Response) => {
-    const { email } = req.query;
+    const { email, query } = req.query;
     try {
       if (email && typeof email === 'string') {
         const profile = await prisma.profile.findUnique({
@@ -27,6 +27,22 @@ export default function profilesRouter(prisma: PrismaClient) {
         });
         if (!profile) return res.status(404).json({ error: 'Perfil no encontrado' });
         return res.json(profile);
+      }
+
+      if (query && typeof query === 'string') {
+        const q = query.toLowerCase();
+        const profiles = await prisma.profile.findMany({
+          where: {
+            OR: [
+              { nombreApellido: { contains: q, mode: 'insensitive' } },
+              { correo: { contains: q, mode: 'insensitive' } },
+              { cuilDni: { contains: q, mode: 'insensitive' } }
+            ]
+          },
+          orderBy: { nombreApellido: 'asc' },
+          take: 20
+        });
+        return res.json(profiles);
       }
 
       const profiles = await prisma.profile.findMany({

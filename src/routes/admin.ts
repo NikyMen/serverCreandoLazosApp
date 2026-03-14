@@ -13,7 +13,7 @@ export default function adminRouter(prisma: PrismaClient) {
     try {
       const user = await prisma.user.findUnique({
         where: { id: req.user.id },
-        select: { id: true, email: true, role: true },
+        select: { id: true, name: true, dni: true, email: true, role: true },
       });
 
       if (!user) {

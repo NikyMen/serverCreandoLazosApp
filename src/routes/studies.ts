@@ -20,12 +20,31 @@ export default function studiesRouter(prisma: PrismaClient) {
   const router = Router();
 
   router.get('/', async (req: Request, res: Response) => {
-    const email = typeof req.query.email === 'string' ? req.query.email : undefined;
-    const studies = await prisma.study.findMany({
-      ...(email ? { where: { forEmail: email } } : {}),
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json(studies);
+    const { email, query } = req.query;
+    try {
+      const where: any = {};
+      if (email && typeof email === 'string') {
+        where.forEmail = email;
+      }
+
+      if (query && typeof query === 'string') {
+        const q = query.toLowerCase();
+        where.OR = [
+          { name: { contains: q, mode: 'insensitive' } },
+          { forEmail: { contains: q, mode: 'insensitive' } },
+          { type: { contains: q, mode: 'insensitive' } }
+        ];
+      }
+
+      const studies = await prisma.study.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+      });
+      res.json(studies);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al obtener estudios' });
+    }
   });
 
   router.get('/:id', async (req: Request, res: Response) => {

@@ -7,19 +7,38 @@ cloudinary.config({
 });
 const createSchema = z.object({
     name: z.string().min(1),
-    mimeType: z.literal('application/pdf'),
-    forEmail: z.string().email().optional(),
-    dataBase64: z.string().min(10),
+    email: z.string().email(),
+    base64: z.string().min(10),
+    type: z.string().optional(),
+    date: z.string().optional(),
 });
 export default function studiesRouter(prisma) {
     const router = Router();
     router.get('/', async (req, res) => {
-        const forEmail = typeof req.query.forEmail === 'string' ? req.query.forEmail : undefined;
-        const studies = await prisma.study.findMany({
-            ...(forEmail ? { where: { forEmail } } : {}),
-            orderBy: { createdAt: 'desc' },
-        });
-        res.json(studies);
+        const { email, query } = req.query;
+        try {
+            const where = {};
+            if (email && typeof email === 'string') {
+                where.forEmail = email;
+            }
+            if (query && typeof query === 'string') {
+                const q = query.toLowerCase();
+                where.OR = [
+                    { name: { contains: q, mode: 'insensitive' } },
+                    { forEmail: { contains: q, mode: 'insensitive' } },
+                    { type: { contains: q, mode: 'insensitive' } }
+                ];
+            }
+            const studies = await prisma.study.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+            });
+            res.json(studies);
+        }
+        catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Error al obtener estudios' });
+        }
     });
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
@@ -33,10 +52,12 @@ export default function studiesRouter(prisma) {
         if (!parsed.success) {
             return res.status(400).json({ error: parsed.error.flatten() });
         }
-        const { name, mimeType, forEmail, dataBase64 } = parsed.data;
+        const { name, email, base64, type, date } = parsed.data;
         try {
             const id = cryptoRandomId();
-            const dataUri = `data:${mimeType};base64,${dataBase64}`;
+            // Assume PDF if not specified, or extract from base64 if possible
+            const mimeType = 'application/pdf';
+            const dataUri = `data:${mimeType};base64,${base64}`;
             const uploaded = await cloudinary.uploader.upload(dataUri, {
                 folder: 'studies',
                 resource_type: 'raw',
@@ -46,13 +67,22 @@ export default function studiesRouter(prisma) {
             const fileUrl = uploaded.secure_url;
             const cloudinaryId = uploaded.public_id;
             const created = await prisma.study.create({
-                data: { id, name, mimeType, forEmail, fileUrl, cloudinaryId },
+                data: {
+                    id,
+                    name,
+                    mimeType,
+                    forEmail: email,
+                    fileUrl,
+                    cloudinaryId,
+                    type,
+                    date
+                },
             });
             res.status(201).json(created);
         }
         catch (err) {
             console.error(err);
-            res.status(500).json({ error: 'No se pudo guardar el PDF' });
+            res.status(500).json({ error: 'No se pudo guardar el archivo' });
         }
     });
     router.delete('/:id', async (req, res) => {
@@ -61,9 +91,12 @@ export default function studiesRouter(prisma) {
         if (!study)
             return res.status(404).json({ error: 'Not found' });
         try {
-            await cloudinary.uploader.destroy(study.id, { resource_type: 'raw' });
+            // Usar cloudinaryId en lugar de id para borrar de Cloudinary
+            await cloudinary.uploader.destroy(study.cloudinaryId, { resource_type: 'raw' });
         }
-        catch { }
+        catch (err) {
+            console.error('Error deleting from Cloudinary:', err);
+        }
         await prisma.study.delete({ where: { id } });
         res.status(204).end();
     });
